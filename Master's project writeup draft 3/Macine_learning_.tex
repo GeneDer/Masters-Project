@@ -56,6 +56,9 @@
 
 \usepackage[]{algorithm2e}
 \usepackage{amsmath}
+\usepackage{graphicx}
+\graphicspath{ {images/} }
+\usepackage{subfigure}
 %----------------------------------------------------------------------------------------
 %	TITLE SECTION
 %----------------------------------------------------------------------------------------
@@ -102,14 +105,14 @@
 \subsection{Background}
 The Quail Ridge Automated Animal Tracking (QRAAT) system provides ecological researchers with tracking data from small wild animals such as birds and rodents. This system consists of transmitters, various radio receiver towers, and a central processing server. Transmitters, which transmit radio pulses, are attached to each animal. The receiver towers, which receive the radio pulse, are stationary located throughout the Quail Ridge Reserve. The receiver towers send the received data to the central processing server. The central processing server then uses the data collected from each of the receiver towers to calculate the most likely position of the animal. 
 
-In addition, each of the radio receiver towers has a detector that captures the signal of interest. The receiver towers continuously receive radio data from the surroundings. The detector computes the sum of the signal amplitude within a time window. If this sum passed the amplitude threshold, then it is considered as a signal of interest and will be used in the position calculation. However, if there are other source such as car engine that creates high amplitude radio pulse, the detector is unable to distinguish it from a true pulse event. Through, the true pulse event with the signal noise can be fixed by mathematic computations, the noise event needs to be filtered.
+In addition, each of the radio receiver towers has a detector that captures the signal of interest. The receiver towers continuously receive radio data from the surroundings. The detector computes the sum of the signal amplitude within a time window. If this sum passes the amplitude threshold, then it is considered as a signal of interest and will be used in the position calculation. However, if there are other source such as car engine that creates high amplitude radio pulse, the detector is unable to distinguish it from a true pulse event. Althrough, the true pulse event with the signal noise can be fixed by mathematic computations, the noise event needs to be filtered.
 
 Due to the carrying capacity of small animals, the battery of the transmitters are generally small. The researchers have to reduce the signal strength in exchange for a longer battery life. The pulse with the reduced signal strength becomes even more difficult to distinguish from the noise. Hence the resulting positions can be significantly far away from the habitats of the targeted animals. QRAAT system needs a more sophisticated algorithm to differentiate the pulse and the noise before preforming the position calculation.
 
 
 
 \subsection{Problem Description}
-Each observation has nine variables recorded. Band3 is the bandwidth at power 3dB. Band10 is the bandwidth at power 10dB. Frequency is the frequency of the signal. EC is the confidence of eigenvalue decomposition. TNP is the total nose power of the signal. EDSP is the eigenvalue decomposition signal power. FDSP is the Fourier decomposition signal power. EDSNR is the eigenvalue decomposition signal to noise ratio which is proportional to EDSP/TNP. FDSNR is the Fourier decomposition signal to noise ratio which is proportional to FDSP/TNP. There is total of 7,151,826 unlabeled observations organized in different sets. The goal of the project is to use these datasets to develop a classification algorithm that will be the most suitable for the QRAAT system. 
+Each observation has nine variables recorded. Band3 is the bandwidth at power 3dB. Band10 is the bandwidth at power 10dB. Frequency is the frequency of the signal. EC is the confidence of eigenvalue decomposition. TNP is the total nose power of the signal. EDSP is the eigenvalue decomposition signal power. FDSP is the Fourier decomposition signal power. EDSNR is the eigenvalue decomposition signal to noise ratio which is proportional to EDSP/TNP. FDSNR is the Fourier decomposition signal to noise ratio which is proportional to FDSP/TNP. There are a total of 7,151,826 unlabeled observations organized in different sets. The goal of the project is to use these datasets to develop a classification algorithm that will be the most suitable for the QRAAT system. 
 
 \subsection{Datasets}
 The data is organized by different combinations of deployment and site . A single deployment refers to a specific transmitter on an animal for tracking while a single site refers to a specific radio receiver tower for collecting data. Different combinations of deployment and site are expected to experience different behaviors of the same variables and are therefore treated as separate datasets. 
@@ -126,9 +129,59 @@ The data is organized by different combinations of deployment and site . A singl
 There are two techniques to label the data. One technique is to intuitively use the GPS location to determine the label of the observation. Another technique is to use the visual recognition of the human eye to detect the pattern of the data.
 \subsubsection{Likelihood Labeling}
 The position calculation is the linear combination of the likelihoods of the data collected during a period of time. The position with the highest likelihood is chosen to be the location of the animal. For each observation, the system can determine the likelihood of a specific angle of the observation's origin. Therefore, the direct way to label an observation is by the threshold of the likelihood at the angle of the GPS records. The observations with high likelihood from the direction of the GPS records are marked as pulse while the ones with low likelihood are marked as noise. The drawback of this method is that the likelihood threshold seems to be inconsistent throughout different combinations of deployment and site from visually viewing the labeled data. Some combinations of deployment and site may require lower threshold to separate the pulse and the noise while others can pass with higher threshold. It is not easy to set a threshold that looks good on all combinations of deployment and site. One can only choose a threshold to define the good observations. The likelihood threshold chosen to label this data is 0.7.
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{bearingPlot}
+\caption{A plot of bearing likelihood for an observation. There are four local maxima each near 0, 125, 225, and 290 degree. The expected angle for deployment 57 at site 2 is 124.15 degree which indicates that this is a good observation. This observation will give the expected angle (124.15 degree) the most weight (0.8) in the position calculation while giving other angles much lower weights.}
+\end{figure}
+
+\begin{figure}[ht!]
+     \begin{center}
+%
+        \subfigure[Deployment57, Site 2]{%
+            \label{fig:first}
+            \includegraphics[width=0.5\textwidth]{Deployment57_site2}
+        }%
+        \subfigure[Deployment57, Site 3]{%
+           \label{fig:second}
+           \includegraphics[width=0.5\textwidth]{Deployment57_site3}
+        }\\ %  ------- End of the first row ----------------------%
+        \subfigure[Deployment57, Site 5]{%
+            \label{fig:third}
+            \includegraphics[width=0.5\textwidth]{Deployment57_site5}
+        }%
+        \subfigure[Deployment57, Site 6]{%
+            \label{fig:fourth}
+            \includegraphics[width=0.5\textwidth]{Deployment57_site6}
+        }%
+%
+    \end{center}
+    \caption{%
+        The expected bearing likelihood and its frequency distributions for each site used for deployment 57. Different sites showed different distributions of the likelihood measures. A threshold of at the expected bearing 0.7 is chosen to be the definition of a good observation in the likelihood labeling.
+     }%
+   \label{fig:subfigures}
+\end{figure}
 
 \subsubsection{Manual Labeling}
 In the scenario with high signal strength, the pulse can be easily determined from the noise by plotting the data. From the plotted data, there are patterns to determine whether an observation is pulse or noise. The strategy is to plot each of the nine variables versus time and set a threshold to separate the pulse and the noise. The disadvantage of this technique is that one has to manually go through each combination of deployment, site, and variable to determine the thresholds. This process is not only time consuming but may include bias toward the labeling. 
+
+\begin{figure}[ht!]
+     \begin{center}
+%
+        \subfigure[Time VS Band3]{%
+            \label{fig:first}
+            \includegraphics[width=0.5\textwidth]{Deployment57_band3_site2}
+        }%
+        \subfigure[Time VS Frequency]{%
+           \label{fig:second}
+           \includegraphics[width=0.5\textwidth]{Deployment57_frequency_site2}
+        }
+    \end{center}
+    \caption{%
+        The plots shows labeling results for manual labeling with red as noise and blue as pulse. The manual labeling manually go through each combinations of deployment, site, and variable and determine the best thresholds on each combination to visually separate noise from pulse. 
+     }%
+   \label{fig:subfigures}
+\end{figure}
 
 \hfill \break
 \noindent
@@ -205,6 +258,12 @@ weightedEntropy(child_{left}, child_{right}) =& \frac{|child_{left}|}{|child_{le
 \end{align*}
 
 After a tree is built, one would need to prune the tree to avoid over-fitting. Error rate of the validation set is often used as the indicator in tree pruning process. The algorithm go through each leaf node and replace the parent of the leaf node as a leaf node. It checks the error rate of the tree with the parent node assigned to each class. If new tree has a lower error rate, the original tree will be modified with the parent node as the leaf node with lower error rate. It continues this process until there are no leaves that can lower the error rate any further. This resulting tree will be the model to determine the classification. 
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{DecisionTree}
+\caption{A small sample of the decision tree trained with deployment 60, site 3, likelihood labeling data. The original tree contains 9659 nodes, hence only a small portion is shown in the figure.}
+\end{figure}
 
 \IncMargin{1em}
 \begin{algorithm}
